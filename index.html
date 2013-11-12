@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Strata Conference Slides</title>
+
+		<meta name="description" content="Changing the nature of healthcare with Sensors">
+		<meta name="author" content="Yodit Stanton">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/default.css" id="theme">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+		<script>
+			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+	<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+				<section>
+					<h1>opensensors.IO</h1>
+					<h3><em>Strata London 2013</em></h3>
+                                        <h3><em>@yoditstanton</em></h3>
+                                        <h3>Atomic Data Labs</h3>
+				</section>
+
+                                <section>
+                                  <img src="arduino.jpeg" class="" alt="" />
+                                </section>
+
+                                <section>
+                                  <h1>Health and Sensors</h1>                                  <p>I am not a doctor just play one on the computer</p>
+                                  <aside class="notes">
+				    Introduce the historical what they were doing with the data
+				  </aside>
+                                </section>
+
+                                <section>
+                                  <h2>The ultimate challenge</h2>
+                                  <ol>
+                                    <li class="fragment">Potentially millions of devices: with different purposes * </li>
+                                    <p class="fragment">*Devices can publish many times a second</p>
+                                    <li class="fragment">Know where the devices are</li>
+                                    <li class="fragment">Alerts and monitoring in real time**</li>
+                                     <p class="fragment">**Real time means real time not kinda real time</p>
+                                    <li class="fragment">Analytics</li>
+                                    <li class="fragment">No expensive Greenfield project</li>
+                                  </ol>
+
+                                  <aside class="notes">
+						Treat people as individuals
+					</aside>
+                                  </section>
+
+                                <section>
+                                  <h2>Needed a standard device protocol</h2>
+                                  <p><em>Examples: temp, gyroscope, lighting, footfalls, windows and door, sleep monitors AND mobile phones</em></p>
+                                  <ul>
+                                    <li class="fragment">Open Source</li>
+                                    <li class="fragment">Hardware agnostic</li>
+                                    <li class="fragment">Easy to get started</li>
+                                    <li class="fragment">Bonus Points: Active community</li>
+                                    </ul>
+                                  <aside class="notes">
+				    non negociatiable, i did not want to be supporting a vendor product
+				</aside>
+                                  </section>
+<section>
+                                  <h2 class="fragment">MQTT</h2>
+                                  <p class="fragment">"Message Queuing Telemetry Transport"</p>
+<p class="fragment">M2M connectivity protocol</p>
+                                  <p class="fragment">Open Sourced by IBM</p>
+                                  <p class="fragment">Suitable for low bandwidth and low powered devices</p>
+                                  <p class="fragment">Extremely lightweight</p>
+
+                                   <aside class="notes">
+						protocol had to be open
+                                                we didn't want to be tied to a brand of
+					</aside>
+                                  </section>
+<section> <h2>Example Usage</h2>
+   <blockquote>
+                                    <p>St Jude Medical uses MQTT with its heart pacemakers to send cardio and pacemaker data for their clinicians remotely monitoring at home patients. This is done to provide the patients a better quality of life and reduce the amount of patient travel for check-ups.</p>
+                                    </blockquote>
+</section>
+
+                                <section>
+                                <h2>Publish and Subscribe Model</h2>
+                                <img src="mqtt-hub.jpg" class="" alt="" />
+                                </section>
+
+                                <section>
+                                  <h2> M2M (Machine to Machine) example</h2>
+                                  <pre><code data-trim contenteditable>
+(require '[clojurewerkz.machine-head.client :as mh])
+
+(def conn (mh/connect "tcp://mqtt.opensensors.io:1883" (mh/generate-id)))
+
+(defn over-pollution [limit]
+  "give me a limit and if pollution levels goes over that tell me about it"
+   (mh/subscribe conn ["Pollution"]
+                (fn [topic meta payload]
+                  (let [pollution (Integer. (String. payload "UTF-8"))]
+                   (if (> pollution limit)
+                     (println
+                      (format "Danger pollution level is currently at %s over the limit of %s" pollution limit)))))))
+
+(mh/publish conn "Pollution" (str 100))
+					</code></pre>
+                                  </section>
+
+                               <section>
+                                  <h2>Build Alerts</h2>
+                                  <p>Understand what is normal for each individual</p>
+                                  <ul>
+                                    <li class="fragment">Fall Detection</li>
+                                    <li class="fragment">Time Series</li>
+                                  </ul>
+                                  </section>
+
+                               <section><h2> Device data is not Interesting</h2>
+                                  <p><em>unless enriched with context</em></p>
+                                  <p>yavrha/node0/address 00011</p>
+                                 <p>yavrha/node0/data0 0</p>
+                                 <p>yavrha/node0/data1 1</p>
+                                 <p>yavrha/node0/data2 2</p>
+                                 <p>yavrha/node0/data3 0</p>
+                                 <p>yavrha/node0/msgid 2</p>
+                                  </section>
+
+                               <section>
+                                 <h2>Message Queues</h2>
+                                 <h3>RabbitMQ</h3>
+                                 <p>Realiable Messaging Service</p>
+                                 </section>
+
+                                <section>
+                                  <h2>Analytics</h2>
+                                  <p class="fragment">Queries on distributed databases we know already</p>
+<p class="fragment">Real Time Analytics using Storm</p>
+                                </section>
+
+                                <section>
+                                  <h2>Key Value Stores</h2>
+                                  <p>Enrich the data to give it context</p>
+                                  </section>
+
+                                <section><h2>opensensors.IO</h2>
+                                <p><em>What happens when we scale to whole cities</em> </p>
+                                <p class="fragment">Publish data for free when using an open data licence</p>
+                                <p class="fragment">Enable Developers to build services using technology they already know</p>
+                                <aside class="notes">
+					You start finding devices everywhere
+					</aside>
+                                </section>
+
+                                <section>
+                                  <h2>A Smart City?</h2>
+                                  <img src="images.jpeg" class="" alt="" width="500px" />
+                                  </section>
+
+                                <section><h2>Why Open?</h2>
+                                  <p><em>The scale of the challenge is too big for any one of us to solve</p></em>
+                                  <img src="ciscocount.png" class="" alt="" />
+                                  </section>
+
+                                <section><h2>Smart Assistive Environments</h2>
+                                  <p>Offer a number of available services</p>
+                                  </section>
+
+                                <section><h2>Future Cities Hackathon</h2>
+                                  <p>140 developers over a weekend</p>
+                                  <blockquote>
+                                    Challenge: "Make the lives of the people of the City of Westminster better"
+                                    </blockquote>
+                                  <aside class="notes">
+						List of submissions
+					</aside>
+                                  </section>
+                                <section>
+                                  <h2>The Problem</h2>
+                                  <p>“Sensor device > Data Provider > people > DB > people > ETL > people> CSV > public entity> people > ETL> IT Vendor> DW > people > CSV > Sharepoint > Dropbox > and… us !!!”</p>
+                                  </section>
+                                <section>
+                                  <h2>Data: Use it or lose it</h2>
+                                  <img src="index.png" class="" alt="" />
+                                  </section>
+                                <section data-background="pollution.png">
+
+                                  </section>
+
+                                <section>
+                                  <h2>Lessons Learned</h2>
+                                  <ul>
+                                    <li class="fragment">Open by Default</li>
+                                    <li class="fragment">Composable systems</li>
+                                    <li class="fragment">KISS</li>
+                                    </ul>
+                                  </section>
+
+                                <section>
+                                  <h2>Gall's Law</h2>
+                                  <p>John Gall, Systemantics: <em>How Systems Work and Especially How They Fail</em></p>
+                                  <blockquote>
+                                    "A complex system that works is invariably found to have evolved from a simple system that worked. The inverse proposition also appears to be true: A complex system designed from scratch never works and cannot be made to work. You have to start over, beginning with a working simple system."
+                                  </blockquote>
+                                </section>
+
+                                <section>
+                                  <h2>Grand--er Ambitions</h2>
+                                  <ul><li class="fragment">Open source software/hardware projects</li>
+                                    <li class="fragment"> Help the spread of knowledge about hardware potential to the mainstream</li>
+  </ul>
+                                  <aside class="notes">
+						In his critique of systems theory.
+					</aside>
+</section>
+<section>
+  <h2>Nice to haves</h2>
+  <p>More Open Hardware</p>
+  <p>Multi purpose hardware</p>
+  <p>Interoperable Systems</p>
+</section>
+
+<section>
+  <p>Paraphrasing Sir Tim Berners-Lee</p>
+  <blockquote>
+    <p>If you open your data people will use it in ways that you never expected </p>
+  </blockquote>
+
+</section>
+
+                                <section>
+                                  <p>Thank you</p>
+                                  <p>@yoditstanton</p>
+                                  </section>
+                        </div>
+        <div class="footer">
+                                                                 <p>opensensors.IO</p>
+        </div>
+        </div>
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+        </body>
+
+</html>
